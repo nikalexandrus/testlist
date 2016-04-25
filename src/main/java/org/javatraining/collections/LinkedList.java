@@ -9,20 +9,22 @@ import java.util.ListIterator;
  * Created by alexander on 4/25/16.
  */
 public class LinkedList<T> implements List<T> {
-    Element<T> head;
-    Element<T> last;
+    private static class Element<T> {
+        T data;
+        Element<T> next;
+    }
+
+    private Element<T> tail;
 
     public LinkedList() {
-        head = new Element<T>();
-        last = new Element<T>();
     }
 
     public int size() {
-        if (head.next == null) {
+        if (tail == null) {
             return 0;
         }
         int size = 0;
-        Element<T> e = head.next;
+        Element<T> e = tail;
         while (e != null) {
             size++;
             e = e.next;
@@ -31,15 +33,23 @@ public class LinkedList<T> implements List<T> {
     }
 
     public boolean isEmpty() {
-        if (head.next == null) {
+        if (tail == null) {
             return true;
         }
         return false;
     }
 
     public boolean contains(Object o) {
-        if (o == null) throw new NullPointerException();
-        Element<T> element = head.next;
+        if (o == null) {
+            throw new NullPointerException();
+        }
+        if (tail == null) {
+            return true;
+        }
+        if(!o.getClass().equals(tail.data.getClass())) {
+            throw new ClassCastException();
+        }
+        Element<T> element = tail;
         while (element != null) {
             if (o.equals(element.data)) {
                 return true;
@@ -58,7 +68,7 @@ public class LinkedList<T> implements List<T> {
         int size = size();
         T[] array = (T[]) new Object[size];
         int i = 0;
-        Element<T> e = head.next;
+        Element<T> e = tail.next;
         while (e != null) {
             array[i] = e.data;
             e = e.next;
@@ -68,14 +78,13 @@ public class LinkedList<T> implements List<T> {
     }
 
     public <T1> T1[] toArray(T1[] a) {
-        if (a == null)
-        {
+        if (a == null) {
             throw new NullPointerException();
         }
         int size = size();
         if (a.length == size) {
             int i = 0;
-            Element<T> e = head.next;
+            Element<T> e = tail.next;
             while (e != null) {
                 a[i] = (T1) e.data;
                 e = e.next;
@@ -83,7 +92,7 @@ public class LinkedList<T> implements List<T> {
             }
         } else if (a.length > size) {
             int i = 0;
-            Element<T> e = head.next;
+            Element<T> e = tail.next;
             while (e != null) {
                 a[i] = (T1) e.data;
                 e = e.next;
@@ -93,9 +102,9 @@ public class LinkedList<T> implements List<T> {
                 a[j] = null;
             }
         } else {
-            T1[] array = (T1[])new Object[size];
+            T1[] array = (T1[]) new Object[size];
             int i = 0;
-            Element<T> e = head.next;
+            Element<T> e = tail.next;
             while (e != null) {
                 array[i] = (T1) e.data;
                 e = e.next;
@@ -113,12 +122,14 @@ public class LinkedList<T> implements List<T> {
         Element<T> e = new Element<T>();
         e.data = t;
         e.next = null;
-        if (head.next == null) {
-            head.next = e;
-            last = e;
+        if (tail == null) {
+            tail = e;
         } else {
-            last.next = e;
-            last = e;
+            Element<T> elem = tail;
+            while (elem.next != null) {
+                elem = elem.next;
+            }
+            elem.next = e;
         }
         return true;
     }
@@ -127,23 +138,20 @@ public class LinkedList<T> implements List<T> {
         if (o == null) {
             throw new NullPointerException();
         }
-        Element<T> e = head.next;
-        if(o.equals(e.data)){
-            head=e;
+        Element<T> e = tail;
+        if (o.equals(e.data)) {
+            tail = e.next;
             return true;
         }
 
         while (e.next != null) {
-                if (o.equals(e.next.data)) {
-                    e.next = e.next.next;
-                    if(e.next==null){
-                        last=e;
-                    }
-                    return true;
-                } else {
-                    e = e.next;
-                }
+            if (o.equals(e.next.data)) {
+                e.next = e.next.next;
+                return true;
+            } else {
+                e = e.next;
             }
+        }
         return false;
     }
 
@@ -168,7 +176,7 @@ public class LinkedList<T> implements List<T> {
     }
 
     public void clear() {
-        head.next = null;
+        tail.next = null;
     }
 
     public T get(int index) {
@@ -176,7 +184,7 @@ public class LinkedList<T> implements List<T> {
             throw new IndexOutOfBoundsException();
         }
         int position = 0;
-        Element<T> e = head.next;
+        Element<T> e = tail;
         while (position < index) {
             position++;
             e = e.next;
@@ -199,11 +207,11 @@ public class LinkedList<T> implements List<T> {
 
         Element<T> newElement = new Element<T>();
         newElement.data = element;
-        if (head.next == null) {
-            head.next = newElement;
+        if (tail == null) {
+            tail = newElement;
             newElement.next = null;
         } else {
-            Element<T> e = head.next;
+            Element<T> e = tail;
             for (int i = 0; i < index - 1; i++) {
                 e = e.next;
             }
@@ -215,13 +223,13 @@ public class LinkedList<T> implements List<T> {
     public T remove(int index) {
         if (index < 0 || index >= size()) throw new IndexOutOfBoundsException();
 
-        Element<T> e = head.next;
-        Element<T> previousElement=head;
-        if(index==0){
-            if(head.next!=null){
-                previousElement=head.next;
-                head=head.next;
-            }else{
+        Element<T> e = tail.next;
+        Element<T> previousElement = tail;
+        if (index == 0) {
+            if (tail.next != null) {
+                previousElement = tail.next;
+                tail = tail.next;
+            } else {
                 return null;
             }
         }
@@ -246,8 +254,10 @@ public class LinkedList<T> implements List<T> {
     }
 
     public int indexOf(Object o) {
-        if (o == null) throw new NullPointerException();
-        Element<T> e = head.next;
+        if (o == null) {
+            throw new NullPointerException();
+        }
+        Element<T> e = tail;
         int i = 0;
         while (e != null) {
             if (o.equals(e.data)) {
@@ -261,7 +271,7 @@ public class LinkedList<T> implements List<T> {
 
     public int lastIndexOf(Object o) {
         if (o == null) throw new NullPointerException();
-        Element<T> e = head.next;
+        Element<T> e = tail;
         int i = 0;
         int lastIndex = -1;
         while (e != null) {
@@ -286,10 +296,6 @@ public class LinkedList<T> implements List<T> {
         return null;
     }
 
-    private static class Element<T> {
-        T data;
-        Element<T> next;
-    }
 }
 
 

@@ -268,7 +268,8 @@ public class LinkedListTest {
     @Test(expected = ClassCastException.class)
     public void testContainsIllegalTypeOfArgument() throws Exception {
         Object o = "Test";
-        list.contains((Integer) o);
+        list.add(1);
+        list.contains(o);
     }
 
     @Test(expected = NullPointerException.class)
